@@ -7,7 +7,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 
 import userRoutes from "./routes/userRoutes.js";
-import activityRoutes from "./routes/activityRoutes.js";
+import ActivityRoutes from "./routes/ActivityRoutes.js";
 
 dotenv.config();
 
