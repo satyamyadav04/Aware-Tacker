@@ -14,6 +14,8 @@ import {
 
 import "./dashboard.css";
 
+const API = process.env.REACT_APP_API_URL;
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [active, setActive] = useState("dashboard");
@@ -29,16 +31,14 @@ const Dashboard = () => {
   const loadActivities = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/activity/all",
+        `${API}/api/activity/all`,
         {
           headers: {
             Authorization: token
           }
         }
       );
-
       setList(res.data);
-
     } catch (err) {
       console.log("LOAD ACTIVITY ERROR");
       console.log(err.response?.data);
@@ -49,7 +49,6 @@ const Dashboard = () => {
   // ================= ADD ACTIVITY =================
   const addActivity = async () => {
     try {
-
       if (!activity.trim()) {
         alert("Enter activity name");
         return;
@@ -61,7 +60,7 @@ const Dashboard = () => {
       }
 
       const res = await axios.post(
-        "http://localhost:5000/api/activity/add",
+        `${API}/api/activity/add`,
         {
           activity: activity.trim(),
           carbon: Number(carbon)
@@ -81,7 +80,6 @@ const Dashboard = () => {
       await loadActivities();
 
     } catch (err) {
-
       console.log("ADD ACTIVITY ERROR");
       console.log(err.response?.data);
       console.log(err.message);
@@ -98,11 +96,9 @@ const Dashboard = () => {
   const loadLeaderboard = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/users/leaderboard"
+        `${API}/api/users/leaderboard`
       );
-
       setUsers(res.data);
-
     } catch (err) {
       console.log(err.message);
     }
@@ -130,24 +126,9 @@ const Dashboard = () => {
 
   // ================= AI ADVISOR =================
   const getAIAdvice = () => {
-    if (totalCarbon < 20)
-      return "🌱 Amazing! Your lifestyle is eco-friendly";
-
-    if (totalCarbon < 50)
-      return "⚡ Try using less transport or electricity";
-
+    if (totalCarbon < 20) return "🌱 Amazing! Your lifestyle is eco-friendly";
+    if (totalCarbon < 50) return "⚡ Try using less transport or electricity";
     return "🔥 High carbon usage! Reduce travel & energy consumption";
-  };
-
-  // ================= INSIGHT =================
-  const getInsight = () => {
-    if (totalCarbon < 20)
-      return "🌱 Great job! Low carbon footprint";
-
-    if (totalCarbon < 50)
-      return "⚡ Average usage, improve a bit";
-
-    return "🔥 High carbon footprint, reduce usage";
   };
 
   // ================= CHART DATA =================
@@ -157,137 +138,106 @@ const Dashboard = () => {
   }));
 
   return (
+    <div className="container">
 
-  <div className="container">
+      <div className="sidebar">
+        <h2>🌿 EcoTrack</h2>
+        <button onClick={() => setActive("dashboard")}>📊 Dashboard</button>
+        <button onClick={() => setActive("activities")}>🌱 My Activities</button>
+        <button onClick={() => setActive("leaderboard")}>🏆 Leaderboard</button>
+        <button onClick={logout}>🚪 Logout</button>
+      </div>
 
-```
-<div className="sidebar">
-  <h2>🌿 EcoTrack</h2>
+      <div className="content">
 
-  <button onClick={() => setActive("dashboard")}>
-    📊 Dashboard
-  </button>
+        {active === "dashboard" && (
+          <>
+            <h1>🌍 Eco Tracker Dashboard</h1>
 
-  <button onClick={() => setActive("activities")}>
-    🌱 My Activities
-  </button>
+            <div className="stats-container">
+              <div className="stat-card">
+                <h3>🌱 Activities</h3>
+                <p>{list.length}</p>
+              </div>
+              <div className="stat-card">
+                <h3>☁️ Carbon</h3>
+                <p>{totalCarbon} kg</p>
+              </div>
+              <div className="stat-card">
+                <h3>🏆 Eco Score</h3>
+                <p>{ecoScore}</p>
+              </div>
+            </div>
 
-  <button onClick={() => setActive("leaderboard")}>
-    🏆 Leaderboard
-  </button>
+            <input
+              className="input"
+              placeholder="Activity"
+              value={activity}
+              onChange={(e) => setActivity(e.target.value)}
+            />
+            <input
+              className="input"
+              type="number"
+              placeholder="Carbon (kg)"
+              value={carbon}
+              onChange={(e) => setCarbon(e.target.value)}
+            />
+            <button className="btn" onClick={addActivity}>
+              Add Activity
+            </button>
 
-  <button onClick={logout}>
-    🚪 Logout
-  </button>
-</div>
+            <div className="ai-card">
+              <h3>🤖 AI Advisor</h3>
+              <p>{getAIAdvice()}</p>
+            </div>
+          </>
+        )}
 
-<div className="content">
-
-  {active === "dashboard" && (
-    <>
-      <h1>🌍 Eco Tracker Dashboard</h1>
-
-      <div className="stats-container">
-
-  <div className="stat-card">
-    <h3>🌱 Activities</h3>
-    <p>{list.length}</p>
-  </div>
-
-  <div className="stat-card">
-    <h3>☁️ Carbon</h3>
-    <p>{totalCarbon} kg</p>
-  </div>
-
-  <div className="stat-card">
-    <h3>🏆 Eco Score</h3>
-    <p>{ecoScore}</p>
-  </div>
-
-</div>
-
-      <input
-        className="input"
-        placeholder="Activity"
-        value={activity}
-        onChange={(e) => setActivity(e.target.value)}
-      />
-
-      <input
-        className="input"
-        type="number"
-        placeholder="Carbon (kg)"
-        value={carbon}
-        onChange={(e) => setCarbon(e.target.value)}
-      />
-
-      <button className="btn" onClick={addActivity}>
-        Add Activity
-      </button>
-       <div className="ai-card">
-      <h3>🤖 AI Advisor</h3>
-      <p>{getAIAdvice()}</p>
-    </div>
-
-    </>
-  )}
-  <h2>📊 Carbon Chart</h2>
-
-      <div style={{ width: "100%", height: 300 }}>
-      <ResponsiveContainer>
-        <LineChart data={chartData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis />
-        <Tooltip />
-        <Line
-          type="monotone"
-          dataKey="carbon"
-          stroke="#2e7d32"
-       />
-         </LineChart>
-     </ResponsiveContainer>
-    </div>
-
-  {active === "activities" && (
-    <>
-      <h2>🌱 My Activities</h2>
-
-      {list.map((item) => (
-        <div key={item._id} className="list-item">
-          {item.activity} - {item.carbon} kg CO₂
+        <h2>📊 Carbon Chart</h2>
+        <div style={{ width: "100%", height: 300 }}>
+          <ResponsiveContainer>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="carbon" stroke="#2e7d32" />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
-      ))}
-    </>
-  )}
 
-  {active === "leaderboard" && (
-  <>
-    <h2>🏆 Leaderboard</h2>
+        {active === "activities" && (
+          <>
+            <h2>🌱 My Activities</h2>
+            {list.map((item) => (
+              <div key={item._id} className="list-item">
+                {item.activity} - {item.carbon} kg CO₂
+              </div>
+            ))}
+          </>
+        )}
 
-    {users.map((u, i) => (
-  <div key={u._id || i} className="leader-card">
+        {active === "leaderboard" && (
+          <>
+            <h2>🏆 Leaderboard</h2>
+            {users.map((u, i) => (
+              <div key={u._id || i} className="leader-card">
+                <span>
+                  {i === 0 && "🥇"}
+                  {i === 1 && "🥈"}
+                  {i === 2 && "🥉"}
+                  {i > 2 && `#${i + 1}`}
+                </span>
+                <span>{u.name}</span>
+                <span>{u.ecoScore} 🏆</span>
+              </div>
+            ))}
+          </>
+        )}
 
-    <span>
-      {i === 0 && "🥇"}
-      {i === 1 && "🥈"}
-      {i === 2 && "🥉"}
-      {i > 2 && `#${i + 1}`}
-    </span>
+      </div>
+    </div>
+  );
+};
 
-    <span>{u.name}</span>
-
-    <span>{u.ecoScore} 🏆</span>
-
-  </div>
-))}
-  </>
-)}
-
-</div>
-```
-
-  </div>
-);
-}
 export default Dashboard;
